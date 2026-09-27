@@ -63,6 +63,37 @@ final class ApplicationValidatorTest extends TestCase
         }
     }
 
+    public function testAcceptsMileageJustBelowLimit(): void
+    {
+        $result = $this->validator->validate($this->validPayload(['mileage' => 399999]));
+
+        self::assertSame(399999, $result['mileage']);
+    }
+
+    public function testAcceptsMileageAtLimit(): void
+    {
+        $result = $this->validator->validate($this->validPayload(['mileage' => 400000]));
+
+        self::assertSame(400000, $result['mileage']);
+    }
+
+    public function testRejectsMileageAboveValidationBoundary(): void
+    {
+        try {
+            $this->validator->validate($this->validPayload(['mileage' => 500001]));
+            self::fail('Ожидали ValidationException');
+        } catch (ValidationException $exception) {
+            self::assertArrayHasKey('mileage', $exception->errors());
+        }
+    }
+
+    public function testAcceptsEmptyMileageAsZero(): void
+    {
+        $result = $this->validator->validate($this->validPayload(['mileage' => '']));
+
+        self::assertSame(0, $result['mileage']);
+    }
+
     public function testCollectsAllErrorsAtOnce(): void
     {
         try {
